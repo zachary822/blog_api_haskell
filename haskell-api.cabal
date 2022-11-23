@@ -78,7 +78,7 @@ executable haskell_api
                       AesonBson,
                       network-uri,
                       text,
-                      MissingH
+                      bson
 
     -- Directories containing source files.
     hs-source-dirs:   app
