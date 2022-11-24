@@ -64,7 +64,8 @@ executable haskell_api
     -- Modules included in this executable, other than Main.
     other-modules:    Lib.ServerOpts,
                       Lib.DbConfig,
-                      Lib.Post
+                      Lib.Post,
+                      Lib.Middleware
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -79,7 +80,8 @@ executable haskell_api
                       AesonBson,
                       network-uri,
                       text,
-                      bson
+                      bson,
+                      wai
 
     -- Directories containing source files.
     hs-source-dirs:   app

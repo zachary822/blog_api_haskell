@@ -1,4 +1,3 @@
-{-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -7,6 +6,7 @@ import Data.AesonBson
 import Data.Maybe (fromJust)
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
+import Lib.Middleware
 import Lib.Post
 import Lib.ServerOpts
 import Network.HTTP.Types.Status (badRequest400, notFound404)
@@ -35,6 +35,9 @@ main = do
   let run = access pipe master db
 
   scotty (port serverOpts) $ do
+    setMaxRequestBodySize 1024
+
+    middleware removeServer
     middleware (if (debug serverOpts) then logStdoutDev else logStdout)
 
     get "/posts/" $ do
