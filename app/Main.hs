@@ -8,7 +8,7 @@ import Data.Maybe
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
 import Lib.ServerOpts
-import Network.HTTP.Types.Status (notFound404, badRequest400)
+import Network.HTTP.Types.Status (badRequest400, notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Options.Applicative
 import System.Environment
@@ -44,8 +44,9 @@ main = do
 
       let oid = (readMaybe oidParam :: Maybe ObjectId)
 
-      maybePost <- case oid of Just o -> run $ findOne (select ["_id" =: o] "posts")
-                               Nothing -> return Nothing
+      maybePost <- case oid of
+        Just o -> run $ findOne (select ["_id" =: o] "posts")
+        Nothing -> return Nothing
 
       case maybePost of
         Just p -> json $ aesonify p
