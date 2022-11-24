@@ -2,10 +2,8 @@
 
 module Lib.DbConfig where
 
-import Data.Maybe (fromJust)
 import Data.Text qualified as T
 import Network.URI
-import System.Environment
 
 data DbConfig = DbConfig
   { dbhost :: String,
@@ -15,10 +13,9 @@ data DbConfig = DbConfig
   }
   deriving (Show)
 
-getDbConfig = do
-  dburi <- getEnv "MONGODB_URI"
-  let uri = fromJust $ parseURI dburi
-  let ua = fromJust $ uriAuthority uri
+getDbConfig dburi = do
+  uri <- parseURI dburi
+  ua <- uriAuthority uri
   let user : pass : _ = T.splitOn ":" $ T.dropWhileEnd (== '@') (T.pack $ uriUserInfo ua)
 
   return

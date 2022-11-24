@@ -4,14 +4,16 @@
 module Main where
 
 import Data.AesonBson
+import Data.Maybe
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
 import Lib.ServerOpts
+import Network.HTTP.Types.Status (notFound404, badRequest400)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Options.Applicative
-import Web.Scotty
+import System.Environment
 import Text.Read (readMaybe)
-import Network.HTTP.Types.Status ( notFound404 )
+import Web.Scotty
 
 getPosts = do
   cur <- find (select [] "posts") {sort = ["updated" =: -1]}
@@ -20,8 +22,8 @@ getPosts = do
 main :: IO ()
 main = do
   serverOpts <- execParser opts
-  dbConfig <- getDbConfig
-
+  dburi <- getEnv "MONGODB_URI"
+  let dbConfig = fromJust $ getDbConfig dburi
   let db = dbname dbConfig
 
   replica <- openReplicaSetSRV' (dbhost dbConfig)
@@ -42,7 +44,9 @@ main = do
 
       let oid = (readMaybe oidParam :: Maybe ObjectId)
 
-      maybePost <- run $ findOne (select ["_id" =: oid] "posts")
+      maybePost <- case oid of Just o -> run $ findOne (select ["_id" =: o] "posts")
+                               Nothing -> return Nothing
 
-      case maybePost of Just p -> json $ aesonify p
-                        Nothing -> status notFound404 >> text "Not Found"
+      case maybePost of
+        Just p -> json $ aesonify p
+        Nothing -> status notFound404 >> text "Not Found"
