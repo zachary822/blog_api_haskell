@@ -13,6 +13,7 @@ import Network.HTTP.Types.Status (badRequest400, notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Options.Applicative (execParser)
 import System.Environment (getEnv)
+import System.Exit
 import Text.Read (readMaybe)
 import Web.Scotty
 
@@ -25,7 +26,11 @@ main = do
 
   replica <- openReplicaSetSRV' (dbhost dbConfig)
   pipe <- primary replica
-  _ <- access pipe master "admin" (auth (dbuser dbConfig) (dbpasswd dbConfig))
+  authSuccess <- access pipe master "admin" (auth (dbuser dbConfig) (dbpasswd dbConfig))
+
+  if not authSuccess
+    then die "MongoDB auth failed"
+    else return ()
 
   let run = access pipe master db
 
