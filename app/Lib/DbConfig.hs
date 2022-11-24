@@ -13,6 +13,7 @@ data DbConfig = DbConfig
   }
   deriving (Show)
 
+getDbConfig :: String -> Maybe DbConfig
 getDbConfig dburi = do
   uri <- parseURI dburi
   ua <- uriAuthority uri
