@@ -4,14 +4,14 @@
 module Main where
 
 import Data.AesonBson
-import Data.Maybe
+import Data.Maybe (fromJust)
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
 import Lib.ServerOpts
 import Network.HTTP.Types.Status (badRequest400, notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
-import Options.Applicative
-import System.Environment
+import Options.Applicative (execParser)
+import System.Environment (getEnv)
 import Text.Read (readMaybe)
 import Web.Scotty
 
