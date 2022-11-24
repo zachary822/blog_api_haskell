@@ -13,7 +13,7 @@ import Network.HTTP.Types.Status (badRequest400, notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Options.Applicative (execParser)
 import System.Environment (getEnv)
-import System.Exit
+import System.Exit (die)
 import Text.Read (readMaybe)
 import Web.Scotty
 
