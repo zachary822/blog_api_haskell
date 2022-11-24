@@ -15,9 +15,11 @@ import System.Environment
 import Text.Read (readMaybe)
 import Web.Scotty
 
-getPosts = do
-  cur <- find (select [] "posts") {sort = ["updated" =: -1]}
+getPosts limit offset = do
+  cur <- find (select ["published" =: True] "posts") {sort = ["updated" =: -1], limit = limit, skip = offset}
   rest cur
+
+getPost oid = findOne (select ["_id" =: oid, "published" =: True] "posts")
 
 main :: IO ()
 main = do
@@ -36,7 +38,10 @@ main = do
     middleware (if (debug serverOpts) then logStdoutDev else logStdout)
 
     get "/posts/" $ do
-      posts <- run getPosts
+      limit <- param "limit" `rescue` (\_ -> return 10)
+      offset <- param "offset" `rescue` (\_ -> return 0)
+
+      posts <- run $ getPosts limit offset
       json $ map aesonify posts
 
     get "/posts/:oid" $ do
@@ -45,9 +50,9 @@ main = do
       let oid = (readMaybe oidParam :: Maybe ObjectId)
 
       maybePost <- case oid of
-        Just o -> run $ findOne (select ["_id" =: o] "posts")
-        Nothing -> return Nothing
+        Just o -> run $ getPost o
+        Nothing -> raiseStatus badRequest400 "Bad ObjectId"
 
       case maybePost of
         Just p -> json $ aesonify p
-        Nothing -> status notFound404 >> text "Not Found"
+        Nothing -> raiseStatus notFound404 "Not Found"
