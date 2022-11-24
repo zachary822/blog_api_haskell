@@ -7,6 +7,7 @@ import Data.AesonBson
 import Data.Maybe (fromJust)
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
+import Lib.Post
 import Lib.ServerOpts
 import Network.HTTP.Types.Status (badRequest400, notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
@@ -14,12 +15,6 @@ import Options.Applicative (execParser)
 import System.Environment (getEnv)
 import Text.Read (readMaybe)
 import Web.Scotty
-
-getPosts limit offset = do
-  cur <- find (select ["published" =: True] "posts") {sort = ["updated" =: -1], limit = limit, skip = offset}
-  rest cur
-
-getPost oid = findOne (select ["_id" =: oid, "published" =: True] "posts")
 
 main :: IO ()
 main = do
