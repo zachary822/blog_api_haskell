@@ -2,6 +2,7 @@
 
 module Main where
 
+import Control.Monad
 import Data.AesonBson
 import Data.Maybe (fromJust)
 import Database.MongoDB hiding (value)
@@ -44,13 +45,12 @@ main = do
       limit <- param "limit" `rescue` (\_ -> return 10)
       offset <- param "offset" `rescue` (\_ -> return 0)
 
-      posts <- run $ getPosts limit offset
-      json $ map aesonify posts
+      posts <- liftM (map aesonify) $ run $ getPosts limit offset
+
+      json posts
 
     get "/posts/:oid" $ do
-      oidParam <- param "oid"
-
-      let oid = (readMaybe oidParam :: Maybe ObjectId)
+      oid <- (liftM readMaybe $ param "oid" :: ActionM (Maybe ObjectId))
 
       maybePost <- case oid of
         Just o -> run $ getPost o
