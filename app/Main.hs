@@ -7,7 +7,7 @@ import Data.AesonBson
 import Data.Maybe (fromJust)
 import Data.Text.Lazy qualified as L
 import Data.Word (Word32)
-import Database.MongoDB hiding (value)
+import Database.MongoDB
 import Lib.DbConfig
 import Lib.Middleware
 import Lib.Post
@@ -21,8 +21,8 @@ import Text.Read (readMaybe)
 import Web.Scotty
 import Web.Scotty.Trans (ActionT)
 
-getOidParam :: MaybeT ActionM ObjectId
-getOidParam = MaybeT $ fmap readMaybe $ param "oid"
+getOidParam :: L.Text -> MaybeT ActionM ObjectId
+getOidParam o = MaybeT $ fmap readMaybe $ param o
 
 getLimitOffset :: ActionT L.Text IO (Limit, Word32)
 getLimitOffset = do
@@ -54,15 +54,15 @@ main = do
     middleware removeServer
     middleware (if (debug serverOpts) then logStdoutDev else logStdout)
 
-    get "/posts/" $ do
+    get "/posts" $ do
       (limit, offset) <- getLimitOffset
       posts <- run $ getPosts limit offset
 
       json $ map aesonify posts
 
-    get "/posts/:oid" $ do
+    get (regex "^/posts/([A-Fa-f0-9]{24})$") $ do
       maybePost <- runMaybeT $ do
-        o <- getOidParam
+        o <- getOidParam "1"
         p <- runGetPost o
         return $ aesonify p
 
