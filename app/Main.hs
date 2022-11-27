@@ -9,13 +9,17 @@ import Lib.DbConfig
 import Lib.Middleware
 import Lib.Post
 import Lib.ServerOpts
-import Network.HTTP.Types.Status (badRequest400, notFound404)
+import Network.HTTP.Types.Status (notFound404)
 import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Options.Applicative (execParser)
 import System.Environment (getEnv)
 import System.Exit (die)
 import Text.Read (readMaybe)
 import Web.Scotty
+import Control.Monad.Trans.Maybe
+
+getOidParam :: MaybeT ActionM ObjectId
+getOidParam = MaybeT $ fmap readMaybe $ param "oid"
 
 main :: IO ()
 main = do
@@ -33,6 +37,7 @@ main = do
     else return ()
 
   let run = access pipe master db
+      runGetPost = MaybeT . run . getPost
 
   scotty (port serverOpts) $ do
     setMaxRequestBodySize 1024
@@ -49,11 +54,9 @@ main = do
       json posts
 
     get "/posts/:oid" $ do
-      oid <- (fmap readMaybe $ param "oid" :: ActionM (Maybe ObjectId))
-
-      maybePost <- case oid of
-        Just o -> run $ getPost o
-        Nothing -> raiseStatus badRequest400 "Bad ObjectId"
+      maybePost <- runMaybeT $ do
+        o <- getOidParam
+        runGetPost o
 
       case maybePost of
         Just p -> json $ aesonify p

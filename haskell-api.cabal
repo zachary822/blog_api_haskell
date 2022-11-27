@@ -81,7 +81,8 @@ executable haskell_api
                       network-uri,
                       text,
                       bson,
-                      wai
+                      wai,
+                      transformers
 
     -- Directories containing source files.
     hs-source-dirs:   app
