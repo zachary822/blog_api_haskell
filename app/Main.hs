@@ -2,8 +2,11 @@
 
 module Main where
 
+import Control.Monad.Trans.Maybe
 import Data.AesonBson
 import Data.Maybe (fromJust)
+import Data.Text.Lazy qualified as L
+import Data.Word (Word32)
 import Database.MongoDB hiding (value)
 import Lib.DbConfig
 import Lib.Middleware
@@ -16,10 +19,16 @@ import System.Environment (getEnv)
 import System.Exit (die)
 import Text.Read (readMaybe)
 import Web.Scotty
-import Control.Monad.Trans.Maybe
+import Web.Scotty.Trans (ActionT)
 
 getOidParam :: MaybeT ActionM ObjectId
 getOidParam = MaybeT $ fmap readMaybe $ param "oid"
+
+getLimitOffset :: ActionT L.Text IO (Limit, Word32)
+getLimitOffset = do
+  limit <- param "limit" `rescue` (\_ -> return 10)
+  offset <- param "offset" `rescue` (\_ -> return 0)
+  return (limit, offset)
 
 main :: IO ()
 main = do
@@ -46,18 +55,17 @@ main = do
     middleware (if (debug serverOpts) then logStdoutDev else logStdout)
 
     get "/posts/" $ do
-      limit <- param "limit" `rescue` (\_ -> return 10)
-      offset <- param "offset" `rescue` (\_ -> return 0)
+      (limit, offset) <- getLimitOffset
+      posts <- run $ getPosts limit offset
 
-      posts <- fmap (map aesonify) $ run $ getPosts limit offset
-
-      json posts
+      json $ map aesonify posts
 
     get "/posts/:oid" $ do
       maybePost <- runMaybeT $ do
         o <- getOidParam
-        runGetPost o
+        p <- runGetPost o
+        return $ aesonify p
 
       case maybePost of
-        Just p -> json $ aesonify p
+        Just p -> json p
         Nothing -> raiseStatus notFound404 "Not Found"
