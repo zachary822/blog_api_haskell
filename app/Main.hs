@@ -4,6 +4,7 @@ module Main where
 
 import Control.Monad.Trans.Maybe
 import Data.AesonBson
+import Data.Map.Strict qualified as Map
 import Data.Maybe (fromJust)
 import Data.Text.Lazy qualified as L
 import Data.Word (Word32)
@@ -52,6 +53,7 @@ main = do
     setMaxRequestBodySize 1024
 
     middleware removeServer
+    middleware $ setCSP (Map.fromList [("img-src", "self")])
     middleware (if (debug serverOpts) then logStdoutDev else logStdout)
 
     get "/posts" $ do

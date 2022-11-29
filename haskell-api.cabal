@@ -50,6 +50,7 @@ extra-doc-files:    CHANGELOG.md
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
+data-files:       static/*.ico
 
 common warnings
     ghc-options: -Wall
@@ -65,7 +66,9 @@ executable haskell_api
     other-modules:    Lib.ServerOpts,
                       Lib.DbConfig,
                       Lib.Post,
-                      Lib.Middleware
+                      Lib.Middleware,
+                      Lib.Routes.Favicon,
+                      Paths_haskell_api
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -82,7 +85,9 @@ executable haskell_api
                       text,
                       bson,
                       wai,
-                      transformers
+                      transformers,
+                      containers,
+                      bytestring
 
     -- Directories containing source files.
     hs-source-dirs:   app
