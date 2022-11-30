@@ -2,7 +2,7 @@
 
 module Lib.DbConfig where
 
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Network.URI
 
 data DbConfig = DbConfig
